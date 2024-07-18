@@ -9,5 +9,6 @@ namespace MokkilicoresExpressAPI.Models
         public string Distrito { get; set; } = string.Empty;
         public string PuntoEnWaze { get; set; } = string.Empty;
         public bool EsCondominio { get; set; }
+        public bool EsPrincipal { get; set; }
     }
 }

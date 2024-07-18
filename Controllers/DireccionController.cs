@@ -19,7 +19,7 @@ namespace MokkilicoresExpressAPI.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Direccion>> Get()
         {
-            if (!_cache.TryGetValue(CacheKey, out List<Direccion>? direcciones))
+            if (!_cache.TryGetValue(CacheKey, out List<Direccion> direcciones))
             {
                 direcciones = new List<Direccion>();
                 _cache.Set(CacheKey, direcciones);
@@ -40,7 +40,7 @@ namespace MokkilicoresExpressAPI.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] Direccion direccion)
         {
-            var direcciones = _cache.Get<List<Direccion>>(CacheKey);
+            var direcciones = _cache.Get<List<Direccion>>(CacheKey) ?? new List<Direccion>();
             direccion.Id = direcciones.Count > 0 ? direcciones.Max(d => d.Id) + 1 : 1;
             direcciones.Add(direccion);
             _cache.Set(CacheKey, direcciones);
@@ -54,11 +54,13 @@ namespace MokkilicoresExpressAPI.Controllers
             var direccion = direcciones?.FirstOrDefault(d => d.Id == id);
             if (direccion == null)
                 return NotFound();
+            direccion.ClienteId = updatedDireccion.ClienteId;
             direccion.Provincia = updatedDireccion.Provincia;
             direccion.Canton = updatedDireccion.Canton;
             direccion.Distrito = updatedDireccion.Distrito;
             direccion.PuntoEnWaze = updatedDireccion.PuntoEnWaze;
             direccion.EsCondominio = updatedDireccion.EsCondominio;
+            direccion.EsPrincipal = updatedDireccion.EsPrincipal;
             _cache.Set(CacheKey, direcciones);
             return NoContent();
         }
@@ -73,6 +75,13 @@ namespace MokkilicoresExpressAPI.Controllers
             direcciones.Remove(direccion);
             _cache.Set(CacheKey, direcciones);
             return NoContent();
+        }
+
+        [HttpGet("Cliente/{clienteId}")]
+        public ActionResult<IEnumerable<Direccion>> GetDireccionesPorCliente(int clienteId)
+        {
+            var direcciones = _cache.Get<List<Direccion>>(CacheKey)?.Where(d => d.ClienteId == clienteId).ToList();
+            return Ok(direcciones);
         }
     }
 }
