@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MokkilicoresExpressAPI.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace MokkilicoresExpressAPI.Controllers
 {
@@ -37,9 +39,14 @@ namespace MokkilicoresExpressAPI.Controllers
             return Ok(cliente);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public ActionResult Post([FromBody] Cliente cliente)
         {
+            if (cliente == null || !ModelState.IsValid)
+            {
+                return BadRequest("Datos de cliente no válidos.");
+            }
             var clientes = _cache.Get<List<Cliente>>(CacheKey);
             cliente.Id = clientes.Count > 0 ? clientes.Max(c => c.Id) + 1 : 1;
             clientes.Add(cliente);
@@ -47,13 +54,25 @@ namespace MokkilicoresExpressAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id = cliente.Id }, cliente);
         }
 
+        [Authorize(Roles = "User, Admin")]
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody] Cliente updatedCliente)
         {
+            if (updatedCliente == null || !ModelState.IsValid)
+            {
+                return BadRequest("Datos de cliente no válidos.");
+            }
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var clientes = _cache.Get<List<Cliente>>(CacheKey);
             var cliente = clientes?.FirstOrDefault(c => c.Id == id);
+            
             if (cliente == null)
                 return NotFound();
+            
+            // Si el usuario no es admin, solo puede editar su propio perfil
+            if (!User.IsInRole("Admin") && cliente.Identificacion != userId)
+                return Unauthorized();
+
             cliente.Nombre = updatedCliente.Nombre;
             cliente.Apellido = updatedCliente.Apellido;
             cliente.Provincia = updatedCliente.Provincia;
@@ -66,6 +85,7 @@ namespace MokkilicoresExpressAPI.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
@@ -73,6 +93,10 @@ namespace MokkilicoresExpressAPI.Controllers
             var cliente = clientes?.FirstOrDefault(c => c.Id == id);
             if (cliente == null)
                 return NotFound();
+            if (!User.IsInRole("Admin"))
+            {
+                return Unauthorized();
+            }
             clientes.Remove(cliente);
             _cache.Set(CacheKey, clientes);
             return NoContent();
