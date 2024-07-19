@@ -104,8 +104,8 @@ internal class Program
             {
                 List<Cliente> initialClientes = new List<Cliente>
         {
-            new Cliente { Id=1, Identificacion = "023456789", Nombre = "Mario", Apellido = "Lopez", Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios" },
-            new Cliente { Id=0, Identificacion = "admin", Nombre = "Admin", Apellido = "Admin", Provincia = "_", Canton = "_", Distrito = "_"}
+            new Cliente { Id=1, Identificacion = "023456789", Nombre = "Mario", Apellido = "Lopez" },
+            new Cliente { Id=0, Identificacion = "admin", Nombre = "Admin", Apellido = "Admin" }
         };
                 cache.Set(ClienteCacheKey, initialClientes, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
             }

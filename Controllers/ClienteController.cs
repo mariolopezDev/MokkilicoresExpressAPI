@@ -77,9 +77,6 @@ namespace MokkilicoresExpressAPI.Controllers
 
             cliente.Nombre = updatedCliente.Nombre;
             cliente.Apellido = updatedCliente.Apellido;
-            cliente.Provincia = updatedCliente.Provincia;
-            cliente.Canton = updatedCliente.Canton;
-            cliente.Distrito = updatedCliente.Distrito;
             cliente.DineroCompradoTotal = updatedCliente.DineroCompradoTotal;
             cliente.DineroCompradoUltimoAno = updatedCliente.DineroCompradoUltimoAno;
             cliente.DineroCompradoUltimos6Meses = updatedCliente.DineroCompradoUltimos6Meses;
