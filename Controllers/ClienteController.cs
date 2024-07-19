@@ -37,11 +37,9 @@ namespace MokkilicoresExpressAPI.Controllers
             var clientes = _cache.Get<List<Cliente>>(CacheKey);
             var cliente = clientes?.FirstOrDefault(c => c.Id == id);
             if (cliente == null)
-                return NotFound();
+                return NotFound(new { Message = $"Cliente con ID {id} no encontrado" });
             return Ok(cliente);
         }
-
-        
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
@@ -49,13 +47,13 @@ namespace MokkilicoresExpressAPI.Controllers
         {
             if (cliente == null || !ModelState.IsValid)
             {
-                return BadRequest("Datos de cliente no válidos.");
+                return BadRequest(new { Message = "Datos de cliente no válidos o incompletos" });
             }
             var clientes = _cache.Get<List<Cliente>>(CacheKey);
             cliente.Id = clientes.Count > 0 ? clientes.Max(c => c.Id) + 1 : 1;
             clientes.Add(cliente);
             _cache.Set(CacheKey, clientes);
-            return CreatedAtAction(nameof(Get), new { id = cliente.Id }, cliente);
+            return CreatedAtAction(nameof(Get), new { id = cliente.Id }, new { Message = "Cliente creado exitosamente", cliente });
         }
 
         [Authorize(Roles = "User, Admin")]

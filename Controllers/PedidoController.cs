@@ -125,7 +125,7 @@ namespace MokkilicoresExpressAPI.Controllers
             if (cliente == null || inventario == null)
             {
                 _logger.LogError("Error: Cliente o Inventario no encontrados.");
-                return BadRequest("Cliente o Inventario no encontrados.");
+                return BadRequest(new { Message = "Cliente o Inventario no encontrados." });
             }
 
             _logger.LogInformation("Pedido actualizado exitosamente con id {PedidoId}.", id);
