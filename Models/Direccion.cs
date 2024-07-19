@@ -10,5 +10,9 @@ namespace MokkilicoresExpressAPI.Models
         public string PuntoEnWaze { get; set; } = string.Empty;
         public bool EsCondominio { get; set; }
         public bool EsPrincipal { get; set; }
+       //public string DireccionCompleta deberia formarse con la combinacion de los campos Distrito, Canton, Provincia
+       public string DireccionCompleta { get; set; } = string.Empty;
+
+
     }
 }

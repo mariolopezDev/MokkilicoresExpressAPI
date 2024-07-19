@@ -14,6 +14,7 @@ namespace MokkilicoresExpressAPI.Controllers
         private const string CacheKey = "Pedidos";
         private const string ClientesCacheKey = "Clientes";
         private const string InventariosCacheKey = "Inventarios";
+        private const string DireccionesCacheKey = "Direcciones";
 
         public PedidoController(IMemoryCache cache, ILogger<PedidoController> logger)
         {
@@ -62,15 +63,30 @@ namespace MokkilicoresExpressAPI.Controllers
             // Load related data
             var clientes = _cache.Get<List<Cliente>>(ClientesCacheKey) ?? new List<Cliente>();
             var inventarios = _cache.Get<List<Inventario>>(InventariosCacheKey) ?? new List<Inventario>();
+            var direcciones = _cache.Get<List<Direccion>>(DireccionesCacheKey) ?? new List<Direccion>();
+            
 
             var cliente = clientes.FirstOrDefault(c => c.Id == pedido.ClienteId);
             var inventario = inventarios.FirstOrDefault(i => i.Id == pedido.InventarioId);
+            var direccion = direcciones.FirstOrDefault(d => d.Id == pedido.DireccionId && d.ClienteId == pedido.ClienteId);
 
-            if (cliente == null || inventario == null)
+
+            if (inventario == null)
             {
                 _logger.LogError("Error: Cliente o Inventario no encontrados.");
                 return BadRequest("Cliente o Inventario no encontrados.");
             }
+            if (direccion == null)
+            {
+                _logger.LogError("Error: Dirección no encontrada o no pertenece al cliente.");
+                return BadRequest("Dirección no válida para este cliente.");
+            }
+            if (cliente == null)
+            {
+                _logger.LogError("Error: Cliente no encontrado.");
+                return BadRequest("Cliente no encontrado.");
+            }
+
 
             pedidos.Add(pedido);
             _logger.LogInformation("Pedido creado exitosamente con id {PedidoId}.", pedido.Id);

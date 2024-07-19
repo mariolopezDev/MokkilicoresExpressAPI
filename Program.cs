@@ -104,8 +104,8 @@ internal class Program
             {
                 List<Cliente> initialClientes = new List<Cliente>
         {
-            new Cliente { Identificacion = "023456789", Nombre = "Mario", Apellido = "Lopez", Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios" },
-            new Cliente { Identificacion = "admin", Nombre = "Admin", Apellido = "Admin", Provincia = "_", Canton = "_", Distrito = "_"}
+            new Cliente { Id=1, Identificacion = "023456789", Nombre = "Mario", Apellido = "Lopez", Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios" },
+            new Cliente { Id=0, Identificacion = "admin", Nombre = "Admin", Apellido = "Admin", Provincia = "_", Canton = "_", Distrito = "_"}
         };
                 cache.Set(ClienteCacheKey, initialClientes, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
             }
@@ -123,8 +123,8 @@ internal class Program
             {
                 List<Direccion> initialDirecciones = new List<Direccion>
         {
-            new Direccion { Id = 1, ClienteId = 1, Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios", PuntoEnWaze = "waze://?ll=9.8998,-83.9876", EsCondominio = false, EsPrincipal = true },
-            new Direccion { Id = 2, ClienteId = 1, Provincia = "San Jose", Canton = "San Jose", Distrito = "San Jose", PuntoEnWaze = "waze://?ll=9.9325,-84.0796", EsCondominio = false, EsPrincipal = false }
+            new Direccion { Id = 0, ClienteId = 0, Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios", PuntoEnWaze = "waze://?ll=9.8998,-83.9876", EsCondominio = false, EsPrincipal = true },
+            new Direccion { Id = 1, ClienteId = 1, Provincia = "San Jose", Canton = "San Jose", Distrito = "San Jose", PuntoEnWaze = "waze://?ll=9.9325,-84.0796", EsCondominio = false, EsPrincipal = false }
         };
                 cache.Set(DireccionCacheKey, initialDirecciones, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
             }

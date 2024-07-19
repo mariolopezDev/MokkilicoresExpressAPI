@@ -29,6 +29,8 @@ namespace MokkilicoresExpressAPI.Controllers
             return Ok(clientes);
         }
 
+        
+
         [HttpGet("{id}")]
         public ActionResult<Cliente> Get(int id)
         {
@@ -38,6 +40,8 @@ namespace MokkilicoresExpressAPI.Controllers
                 return NotFound();
             return Ok(cliente);
         }
+
+        
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
