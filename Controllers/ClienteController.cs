@@ -41,6 +41,17 @@ namespace MokkilicoresExpressAPI.Controllers
             return Ok(cliente);
         }
 
+
+        [HttpGet("Usuario/{identificacion}")]
+        public ActionResult<Cliente> Get(string identificacion)
+        {
+            var clientes = _cache.Get<List<Cliente>>(CacheKey);
+            var cliente = clientes?.FirstOrDefault(c => c.Identificacion == identificacion);
+            if (cliente == null)
+                return NotFound(new { Message = $"Cliente con identificación {identificacion} no encontrado" });
+            return Ok(cliente);
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public ActionResult Post([FromBody] Cliente cliente)

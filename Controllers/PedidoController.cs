@@ -50,6 +50,21 @@ namespace MokkilicoresExpressAPI.Controllers
             return Ok(pedido);
         }
 
+        [HttpGet("Cliente/{clienteId}")]
+        public ActionResult<IEnumerable<Pedido>> GetByCliente(int clienteId)
+        {
+            var pedidos = _cache.Get<List<Pedido>>(CacheKey);
+            var pedidosCliente = pedidos?.Where(p => p.ClienteId == clienteId).ToList();
+            if (pedidosCliente == null || pedidosCliente.Count == 0)
+            {
+                _logger.LogWarning("Pedidos for client with id {ClienteId} not found.", clienteId);
+                return NotFound();
+            }
+
+            _logger.LogDebug("Get Pedidos for client with id {ClienteId}. Pedidos: {pedidosCliente}", clienteId, pedidosCliente);
+            return Ok(pedidosCliente);
+        }
+
         [HttpPost]
         public ActionResult Post([FromBody] Pedido pedido)
         {
