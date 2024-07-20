@@ -113,8 +113,8 @@ internal class Program
             {
                 List<Inventario> initialInventarios = new List<Inventario>
         {
-            new Inventario { Id = 1, CantidadEnExistencia = 100, BodegaId = 1, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Vodka" },
-            new Inventario { Id = 2, CantidadEnExistencia = 50, BodegaId = 2, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Whisky" }
+            new Inventario { Id = 1, CantidadEnExistencia = 100, BodegaId = 1, Precio = 10000, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Vodka" },
+            new Inventario { Id = 2, CantidadEnExistencia = 50, BodegaId = 2, Precio = 35000, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Whisky" }
         };
                 cache.Set(InventarioCacheKey, initialInventarios, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
             }
@@ -123,7 +123,7 @@ internal class Program
             {
                 List<Direccion> initialDirecciones = new List<Direccion>
         {
-            new Direccion { Id = 0, ClienteId = 0, Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios", PuntoEnWaze = "waze://?ll=9.8998,-83.9876", EsCondominio = false, EsPrincipal = true },
+            new Direccion { Id = 1, ClienteId = 0, Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios", PuntoEnWaze = "waze://?ll=9.8998,-83.9876", EsCondominio = false, EsPrincipal = true },
             new Direccion { Id = 1, ClienteId = 1, Provincia = "San Jose", Canton = "San Jose", Distrito = "San Jose", PuntoEnWaze = "waze://?ll=9.9325,-84.0796", EsCondominio = false, EsPrincipal = false }
         };
                 cache.Set(DireccionCacheKey, initialDirecciones, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));

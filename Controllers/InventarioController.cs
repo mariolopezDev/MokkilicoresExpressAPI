@@ -55,6 +55,15 @@ namespace MokkilicoresExpressAPI.Controllers
             {
                 return BadRequest(new { Message = "Tipo de licor es un campo requerido" });
             }
+            if (inventario.CantidadEnExistencia <= 0)
+            {
+                return BadRequest(new { Message = "Cantidad en existencia debe ser mayor a 0" });
+            }
+            if (inventario.Precio <= 0)
+            {
+                return BadRequest(new { Message = "Precio debe ser mayor a 0" });
+            }
+
 
             var inventarios = _cache.GetOrCreate(CacheKey, entry => new List<Inventario>());
             if (inventarios == null)
@@ -69,13 +78,10 @@ namespace MokkilicoresExpressAPI.Controllers
             // Actualizar la caché
             _cache.Set(CacheKey, inventarios);
 
-            // Log para depuración
-            Console.WriteLine($"Inventario creado: {inventario.Id}, Tipo: {inventario.TipoLicor}");
-
             return CreatedAtAction(nameof(Get), new { id = inventario.Id }, inventario);
         }
 
-        // PUT api/inventario/5 - Actualizar un inventario existente
+        
         [Authorize(Roles = "User, Admin")]
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody] Inventario updatedInventario)
@@ -93,6 +99,7 @@ namespace MokkilicoresExpressAPI.Controllers
 
             inventario.CantidadEnExistencia = updatedInventario.CantidadEnExistencia;
             inventario.BodegaId = updatedInventario.BodegaId;
+            inventario.Precio = updatedInventario.Precio;
             inventario.FechaIngreso = updatedInventario.FechaIngreso;
             inventario.FechaVencimiento = updatedInventario.FechaVencimiento;
             inventario.TipoLicor = updatedInventario.TipoLicor;

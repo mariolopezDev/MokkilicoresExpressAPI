@@ -8,6 +8,7 @@ namespace MokkilicoresExpressAPI.Models
         public int DireccionId { get; set; }
         public int Cantidad { get; set; }
         public decimal CostoSinIVA { get; set; }
+        public decimal PorcentajeDescuento { get; set; } = 0;
         public decimal CostoTotal { get; set; }
         public string Estado { get; set; } = string.Empty;
         

@@ -71,15 +71,18 @@ namespace MokkilicoresExpressAPI.Controllers
             // Logging para ver los datos recibidos
             _logger.LogDebug("Datos recibidos: {PedidoData}", JsonSerializer.Serialize(pedido));
 
-            var pedidos = _cache.Get<List<Pedido>>(CacheKey) ?? new List<Pedido>();
-            pedido.Id = pedidos.Count > 0 ? pedidos.Max(p => p.Id) + 1 : 1;
-            pedido.CostoTotal = pedido.CostoSinIVA * 1.13M; // Calcular el costo total
+            
 
             // Load related data
             var clientes = _cache.Get<List<Cliente>>(ClientesCacheKey) ?? new List<Cliente>();
             var inventarios = _cache.Get<List<Inventario>>(InventariosCacheKey) ?? new List<Inventario>();
             var direcciones = _cache.Get<List<Direccion>>(DireccionesCacheKey) ?? new List<Direccion>();
             
+            var pedidos = _cache.Get<List<Pedido>>(CacheKey) ?? new List<Pedido>();
+            
+            pedido.Id = pedidos.Count > 0 ? pedidos.Max(p => p.Id) + 1 : 1;
+            pedido.CostoSinIVA = inventarios.FirstOrDefault(i => i.Id == pedido.InventarioId)?.Precio * pedido.Cantidad ?? 0;
+            pedido.CostoTotal = pedido.CostoSinIVA * 1.13M; // Calcular el costo total
 
             var cliente = clientes.FirstOrDefault(c => c.Id == pedido.ClienteId);
             var inventario = inventarios.FirstOrDefault(i => i.Id == pedido.InventarioId);
@@ -123,25 +126,56 @@ namespace MokkilicoresExpressAPI.Controllers
                 return NotFound();
             }
 
-            pedido.ClienteId = updatedPedido.ClienteId;
-            pedido.InventarioId = updatedPedido.InventarioId;
-            pedido.Cantidad = updatedPedido.Cantidad;
-            pedido.CostoSinIVA = updatedPedido.CostoSinIVA;
-            pedido.CostoTotal = updatedPedido.CostoSinIVA * 1.13M; // Calcular el costo total
-            pedido.Estado = updatedPedido.Estado;
-
-            // Load related data
-            var clientes = _cache.Get<List<Cliente>>(ClientesCacheKey) ?? new List<Cliente>();
-            var inventarios = _cache.Get<List<Inventario>>(InventariosCacheKey) ?? new List<Inventario>();
-
-            var cliente = clientes.FirstOrDefault(c => c.Id == pedido.ClienteId);
-            var inventario = inventarios.FirstOrDefault(i => i.Id == pedido.InventarioId);
+            
+            var inventario = _cache.Get<List<Inventario>>(InventariosCacheKey)?.FirstOrDefault(i => i.Id == updatedPedido.InventarioId);
+            var cliente = _cache.Get<List<Cliente>>(ClientesCacheKey)?.FirstOrDefault(c => c.Id == updatedPedido.ClienteId);
 
             if (cliente == null || inventario == null)
             {
                 _logger.LogError("Error: Cliente o Inventario no encontrados.");
                 return BadRequest(new { Message = "Cliente o Inventario no encontrados." });
             }
+
+            _logger.LogInformation("updatedPedido.CostoSinIVA {CostoSinIVA}", updatedPedido.CostoSinIVA);
+            _logger.LogInformation("inventario.Precio {Precio}", inventario.Precio);
+            _logger.LogInformation("updatedPedido.Cantidad {Cantidad}", updatedPedido.Cantidad);
+            _logger.LogInformation("inventario.Precio * updatedPedido.Cantidad {PrecioCantidad}", inventario.Precio * updatedPedido.Cantidad);
+
+            
+           
+            // Actualizar pedido con los nuevos datos recibidos
+            pedido.ClienteId = updatedPedido.ClienteId;
+            pedido.InventarioId = updatedPedido.InventarioId;
+            pedido.Cantidad = updatedPedido.Cantidad;
+            pedido.CostoSinIVA = inventario.Precio * updatedPedido.Cantidad;
+
+            _logger.LogInformation("Pedido.CostoSinIVA {CostoSinIVA}", pedido.CostoSinIVA);
+
+            //Calclulo del % de descuento
+            if (pedido.CostoSinIVA > 50000)
+            {
+                pedido.PorcentajeDescuento = 0.2M;
+            }
+            else if (pedido.CostoSinIVA > 25000)
+            {
+                pedido.PorcentajeDescuento = 0.1M;
+            }
+            else
+            {
+                pedido.PorcentajeDescuento = 0;
+            }
+            var MontoDescuento = pedido.CostoSinIVA * pedido.PorcentajeDescuento;
+            _logger.LogInformation("MontoDescuento {MontoDescuento}", MontoDescuento);
+
+            pedido.CostoTotal = (pedido.CostoSinIVA - MontoDescuento) * 1.13M;
+            _logger.LogInformation("Pedido.CostoTotal {CostoTotal}", pedido.CostoTotal);
+            pedido.Estado = updatedPedido.Estado;
+
+            // Actualizar Historial de compras del cliente
+            cliente.DineroCompradoTotal += pedido.CostoTotal;
+                // Pendiente logica para tiempos de compra
+            cliente.DineroCompradoUltimos6Meses += pedido.CostoTotal;
+            cliente.DineroCompradoUltimoAno += pedido.CostoTotal;
 
             _logger.LogInformation("Pedido actualizado exitosamente con id {PedidoId}.", id);
             _cache.Set(CacheKey, pedidos);
