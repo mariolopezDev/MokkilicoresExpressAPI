@@ -29,7 +29,7 @@ namespace MokkilicoresExpressAPI.Controllers
             return Ok(clientes);
         }
 
-        
+
 
         [HttpGet("{id}")]
         public ActionResult<Cliente> Get(int id)
@@ -78,10 +78,10 @@ namespace MokkilicoresExpressAPI.Controllers
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var clientes = _cache.Get<List<Cliente>>(CacheKey);
             var cliente = clientes?.FirstOrDefault(c => c.Id == id);
-            
+
             if (cliente == null)
                 return NotFound();
-            
+
             // Si el usuario no es admin, solo puede editar su propio perfil
             if (!User.IsInRole("Admin") && cliente.Identificacion != userId)
                 return Unauthorized();

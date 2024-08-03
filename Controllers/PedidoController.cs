@@ -173,7 +173,7 @@ namespace MokkilicoresExpressAPI.Controllers
 
             // Actualizar Historial de compras del cliente
             cliente.DineroCompradoTotal += pedido.CostoTotal;
-                // Pendiente logica para tiempos de compra
+                // TODO: Pendiente logica para tiempos de compra
             cliente.DineroCompradoUltimos6Meses += pedido.CostoTotal;
             cliente.DineroCompradoUltimoAno += pedido.CostoTotal;
 

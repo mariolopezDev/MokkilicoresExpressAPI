@@ -33,7 +33,7 @@ namespace MokkilicoresExpressAPI.Controllers
             var cliente = clientes?.FirstOrDefault(c => c.Identificacion == loginRequest.Identificacion);
             if (cliente == null || !ValidatePassword(cliente, loginRequest.Password))
             {
-                return Unauthorized(new { Message = "Credeciales inválidas, cliente no encontrado o contraseña incorrecta" });
+                return Unauthorized(new { Message = "Credenciales inválidas, cliente no encontrado o contraseña incorrecta" });
             }
 
             return Ok(new LoginResponse { Token = _tokenService.GenerateJwtToken(cliente.Identificacion, "User"), Identificacion = cliente.Identificacion, Role = "User" });
