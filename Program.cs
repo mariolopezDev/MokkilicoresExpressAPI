@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 using Microsoft.Extensions.Caching.Memory;
 using MokkilicoresExpressAPI.Models;
 using MokkilicoresExpressAPI.Services;
+using MokkilicoresExpressAPI.Data;
+
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
 
 internal class Program
 {
@@ -16,6 +21,17 @@ internal class Program
         builder.Services.AddControllers();
         // Registro del servicio ITokenService
         builder.Services.AddSingleton<ITokenService, TokenService>();
+
+
+        // Registro de DbContext
+        //
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+        builder.Services.AddDbContext<ML_DbContext>(options =>
+        {
+        options.UseInMemoryDatabase("ML_DB");
+        //options.UseSqlServer(connectionString);
+        });
 
         // Registro de IMemoryCache
         builder.Services.AddMemoryCache();
@@ -89,46 +105,48 @@ internal class Program
 
         app.MapControllers();
 
-        InitializeCache(app.Services);
+        InitializeDatabase(app.Services);
 
         app.Run();
 
-        void InitializeCache(IServiceProvider services)
+        void InitializeDatabase(IServiceProvider services)
         {
-            var cache = services.GetRequiredService<IMemoryCache>();
-            const string ClienteCacheKey = "Clientes";
-            const string InventarioCacheKey = "Inventarios";
-            const string DireccionCacheKey = "Direcciones";
+        using (var scope = services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ML_DbContext>();
 
-            if (!cache.TryGetValue(ClienteCacheKey, out List<Cliente> _))
+            if (!dbContext.Cliente.Any())
             {
                 List<Cliente> initialClientes = new List<Cliente>
-        {
-            new Cliente { Id=1, Identificacion = "023456789", Nombre = "Mario", Apellido = "Lopez" },
-            new Cliente { Id=0, Identificacion = "admin", Nombre = "Admin", Apellido = "Admin" }
-        };
-                cache.Set(ClienteCacheKey, initialClientes, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
+                {
+                    new Cliente { Identificacion = "023456789", Nombre = "Mario", Apellido = "Lopez" },
+                    new Cliente { Identificacion = "admin", Nombre = "Admin", Apellido = "Admin" }
+                };
+                dbContext.Cliente.AddRange(initialClientes);
             }
-            if (!cache.TryGetValue(InventarioCacheKey, out List<Inventario> _))
+
+            if (!dbContext.Inventario.Any())
             {
                 List<Inventario> initialInventarios = new List<Inventario>
-        {
-            new Inventario { Id = 1, CantidadEnExistencia = 100, BodegaId = 1, Precio = 10000, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Vodka" },
-            new Inventario { Id = 2, CantidadEnExistencia = 50, BodegaId = 2, Precio = 35000, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Whisky" }
-        };
-                cache.Set(InventarioCacheKey, initialInventarios, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
+                {
+                    new Inventario { CantidadEnExistencia = 100, BodegaId = 1, Precio = 10000, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Vodka" },
+                    new Inventario { CantidadEnExistencia = 50, BodegaId = 2, Precio = 35000, FechaIngreso = DateTime.Now, FechaVencimiento = DateTime.Now.AddYears(1), TipoLicor = "Whisky" }
+                };
+                dbContext.Inventario.AddRange(initialInventarios);
             }
 
-            if (!cache.TryGetValue(DireccionCacheKey, out List<Direccion> _))
+            if (!dbContext.Direccion.Any())
             {
                 List<Direccion> initialDirecciones = new List<Direccion>
-        {
-            new Direccion { Id = 1, ClienteId = 0, Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios", PuntoEnWaze = "waze://?ll=9.8998,-83.9876", EsCondominio = false, EsPrincipal = true },
-            new Direccion { Id = 1, ClienteId = 1, Provincia = "San Jose", Canton = "San Jose", Distrito = "San Jose", PuntoEnWaze = "waze://?ll=9.9325,-84.0796", EsCondominio = false, EsPrincipal = false }
-        };
-                cache.Set(DireccionCacheKey, initialDirecciones, new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(60)));
+                {
+                    new Direccion { ClienteId = 1, Provincia = "Cartago", Canton = "La Union", Distrito = "Tres Rios", PuntoEnWaze = "waze://?ll=9.8998,-83.9876", EsCondominio = false, EsPrincipal = true },
+                    new Direccion { ClienteId = 2, Provincia = "San Jose", Canton = "San Jose", Distrito = "San Jose", PuntoEnWaze = "waze://?ll=9.9325,-84.0796", EsCondominio = false, EsPrincipal = false }
+                };
+                dbContext.Direccion.AddRange(initialDirecciones);
             }
 
+            dbContext.SaveChanges();
+        }
         }
     }
 }
