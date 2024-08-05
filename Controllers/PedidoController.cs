@@ -65,10 +65,14 @@ namespace MokkilicoresExpressAPI.Controllers
             var inventario = await _context.Inventario.FindAsync(pedido.InventarioId);
             var direccion = await _context.Direccion.FirstOrDefaultAsync(d => d.Id == pedido.DireccionId && d.ClienteId == pedido.ClienteId);
 
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (pedido.ClienteId != cliente.Id)
+                return Unauthorized();
+
             if (inventario == null)
             {
-                _logger.LogError("Error: Cliente o Inventario no encontrados.");
-                return BadRequest("Cliente o Inventario no encontrados.");
+                _logger.LogError("Error: Inventario no encontrado.");
+                return BadRequest("Inventario no encontrado.");
             }
             if (direccion == null)
             {
@@ -91,6 +95,7 @@ namespace MokkilicoresExpressAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id = pedido.Id }, pedido);
         }
 
+        [Authorize(Roles = "User")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromBody] Pedido updatedPedido)
         {
@@ -112,6 +117,10 @@ namespace MokkilicoresExpressAPI.Controllers
                 _logger.LogError("Error: Cliente o Inventario no encontrados.");
                 return BadRequest(new { Message = "Cliente o Inventario no encontrados." });
             }
+
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (pedido.ClienteId != cliente.Id)
+                return Unauthorized();
 
             _logger.LogInformation("updatedPedido.CostoSinIVA {CostoSinIVA}", updatedPedido.CostoSinIVA);
             _logger.LogInformation("inventario.Precio {Precio}", inventario.Precio);
@@ -158,6 +167,7 @@ namespace MokkilicoresExpressAPI.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

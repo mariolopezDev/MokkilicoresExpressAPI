@@ -61,14 +61,20 @@ namespace MokkilicoresExpressAPI.Controllers
             return Ok(direccionesCliente);
         }
 
+        [Authorize(Roles = "User")]
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Direccion direccion)
         {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (direccion.ClienteId != cliente.Id)
+                return Unauthorized();
+
             _context.Direccion.Add(direccion);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = direccion.Id }, direccion);
         }
 
+        [Authorize(Roles = "User")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromBody] Direccion updatedDireccion)
         {
@@ -89,6 +95,7 @@ namespace MokkilicoresExpressAPI.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "User")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

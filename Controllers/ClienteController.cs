@@ -69,6 +69,9 @@ namespace MokkilicoresExpressAPI.Controllers
             var cliente = await _context.Cliente.FindAsync(id);
             if (cliente == null)
                 return NotFound();
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (!User.IsInRole("Admin") && cliente.Identificacion != userId)
+                return Unauthorized();
 
             cliente.Nombre = updatedCliente.Nombre;
             cliente.Apellido = updatedCliente.Apellido;
@@ -80,7 +83,7 @@ namespace MokkilicoresExpressAPI.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

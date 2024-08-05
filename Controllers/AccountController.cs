@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
+using MokkilicoresExpressAPI.Data;
 using MokkilicoresExpressAPI.Models;
 using MokkilicoresExpressAPI.Services;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MokkilicoresExpressAPI.Controllers
 {
@@ -11,26 +12,24 @@ namespace MokkilicoresExpressAPI.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly IMemoryCache _cache;
+        private readonly ML_DbContext _context;
         private readonly ITokenService _tokenService;
-        private const string ClienteCacheKey = "Clientes";
 
-        public AccountController(IMemoryCache cache, ITokenService tokenService)
+        public AccountController(ML_DbContext context, ITokenService tokenService)
         {
-            _cache = cache;
+            _context = context;
             _tokenService = tokenService;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
             if (loginRequest.Identificacion == "admin" && loginRequest.Password == "admin")
             {
                 return Ok(new LoginResponse { Token = _tokenService.GenerateJwtToken("admin", "Admin"), Identificacion = "admin", Role = "Admin" });
             }
 
-            var clientes = _cache.Get<List<Cliente>>(ClienteCacheKey);
-            var cliente = clientes?.FirstOrDefault(c => c.Identificacion == loginRequest.Identificacion);
+            var cliente = await _context.Cliente.FirstOrDefaultAsync(c => c.Identificacion == loginRequest.Identificacion);
             if (cliente == null || !ValidatePassword(cliente, loginRequest.Password))
             {
                 return Unauthorized(new { Message = "Credenciales inválidas, cliente no encontrado o contraseña incorrecta" });
