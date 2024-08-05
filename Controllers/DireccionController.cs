@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 using MokkilicoresExpressAPI.Models;
 using MokkilicoresExpressAPI.Data;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MokkilicoresExpressAPI.Controllers
 {
@@ -65,8 +67,11 @@ namespace MokkilicoresExpressAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Direccion direccion)
         {
+            
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (direccion.ClienteId != cliente.Id)
+
+            var cliente = await _context.Cliente.FirstOrDefaultAsync(c => c.Id == direccion.ClienteId);
+            if (cliente == null || direccion.ClienteId != cliente.Id)
                 return Unauthorized();
 
             _context.Direccion.Add(direccion);

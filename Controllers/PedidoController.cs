@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MokkilicoresExpressAPI.Data;
 using MokkilicoresExpressAPI.Models;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace MokkilicoresExpressAPI.Controllers
@@ -64,6 +66,12 @@ namespace MokkilicoresExpressAPI.Controllers
             var cliente = await _context.Cliente.FindAsync(pedido.ClienteId);
             var inventario = await _context.Inventario.FindAsync(pedido.InventarioId);
             var direccion = await _context.Direccion.FirstOrDefaultAsync(d => d.Id == pedido.DireccionId && d.ClienteId == pedido.ClienteId);
+
+            if (cliente == null || inventario == null || direccion == null)
+            {
+                _logger.LogError("Error: Cliente, Inventario o Dirección no encontrados.");
+                return BadRequest("Cliente, Inventario o Dirección no encontrados.");
+            }
 
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (pedido.ClienteId != cliente.Id)
